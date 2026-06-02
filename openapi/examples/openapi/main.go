@@ -255,7 +255,9 @@ func main() {
 
 	kori.GET(r, "/health", health)
 
-	kori.GET(r, "/todos", listTodos(store),
+	api := kori.Group(r, "/api")
+
+	kori.GET(api, "/todos", listTodos(store),
 		spec.Route(kopenapi.RouteConfig{
 			Summary:     "List todos",
 			Description: "Returns all todos, optionally filtered by priority and completion status.",
@@ -268,7 +270,7 @@ func main() {
 		}),
 	)
 
-	kori.GET(r, "/todos/{id}", getTodo(store),
+	kori.GET(api, "/todos/{id}", getTodo(store),
 		spec.Route(kopenapi.RouteConfig{
 			Summary: "Get todo by ID",
 			Tags:    []string{"todos"},
@@ -281,7 +283,7 @@ func main() {
 		}),
 	)
 
-	kori.POST(r, "/todos", createTodo(store),
+	kori.POST(api, "/todos", createTodo(store),
 		spec.Route(kopenapi.RouteConfig{
 			Summary: "Create todo",
 			Tags:    []string{"todos"},
@@ -293,7 +295,7 @@ func main() {
 		}),
 	)
 
-	kori.PATCH(r, "/todos/{id}", updateTodo(store),
+	kori.PATCH(api, "/todos/{id}", updateTodo(store),
 		spec.Route(kopenapi.RouteConfig{
 			Summary: "Update todo",
 			Tags:    []string{"todos"},
@@ -308,7 +310,7 @@ func main() {
 		}),
 	)
 
-	kori.DELETE(r, "/todos/{id}", deleteTodo(store),
+	kori.DELETE(api, "/todos/{id}", deleteTodo(store),
 		kori.Use(apiKeyAuth),
 		spec.Route(kopenapi.RouteConfig{
 			Summary:     "Delete todo",
