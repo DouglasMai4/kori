@@ -342,7 +342,7 @@ admin := kori.Group(r, "/admin", AuthMiddleware)
 type Option func(*RouteInfo)
 
 // Internal use — kori.Use()
-// External use — kori/openapi (v0.2.0), route logging, etc.
+// External use — kori/openapi, route logging, etc.
 
 // Example: log all routes at startup
 func LogRoute(log *slog.Logger) kori.Option {
@@ -409,7 +409,7 @@ curl -X DELETE http://localhost:8080/api/todos/1
 
 ## Roadmap
 
-- **v0.2** — `kori/openapi`: OpenAPI 3.1 spec generation via `Option`, separate module
+- **v0.2** — `kori/openapi`: OpenAPI 3.1 spec generation via `Option` — [read more](./openapi/README.md)
 - **v0.3** — `kori/testing`: test helpers for handlers, `BindMultipart` for `multipart/form-data`
 
 ---
