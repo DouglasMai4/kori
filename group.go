@@ -2,7 +2,17 @@ package kori
 
 import "github.com/go-chi/chi/v5"
 
-func Group(r chi.Router, prefix string, middlewares ...Middleware) chi.Router {
+type Router struct {
+	chi.Router
+	prefix string
+}
+
+func Group(r chi.Router, prefix string, middlewares ...Middleware) *Router {
+	fullPrefix := prefix
+	if kr, ok := r.(*Router); ok {
+		fullPrefix = kr.prefix + prefix
+	}
+
 	var sub chi.Router
 
 	r.Route(prefix, func(sr chi.Router) {
@@ -12,5 +22,5 @@ func Group(r chi.Router, prefix string, middlewares ...Middleware) chi.Router {
 		sub = sr
 	})
 
-	return sub
+	return &Router{Router: sub, prefix: fullPrefix}
 }

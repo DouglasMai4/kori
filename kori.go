@@ -39,7 +39,12 @@ func OPTIONS(r chi.Router, pattern string, h Handler, opts ...Option) {
 }
 
 func register(r chi.Router, method, pattern string, h Handler, opts ...Option) {
-	ri := &RouteInfo{Method: method, Pattern: pattern}
+	fullPattern := pattern
+	if kr, ok := r.(*Router); ok {
+		fullPattern = kr.prefix + pattern
+	}
+
+	ri := &RouteInfo{Method: method, Pattern: fullPattern}
 
 	for _, opt := range opts {
 		opt(ri)
