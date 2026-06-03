@@ -18,6 +18,8 @@ type RouteConfig struct {
 	Params      any
 	Body        any
 	Responses   map[int]any
+	Security    []SecurityRequirement
+	NoSecurity  bool
 }
 
 func (s *Spec) Route(cfg RouteConfig) kori.Option {
@@ -55,7 +57,7 @@ func (s *Spec) buildOperation(method, pattern string, cfg RouteConfig) *Operatio
 
 	if cfg.Body != nil && bodyAllowed(method) {
 		t := reflect.TypeOf(cfg.Body)
-		for t.Kind() == reflect.Ptr {
+		for t.Kind() == reflect.Pointer {
 			t = t.Elem()
 		}
 		bodySchema := s.reg.schemaFor(t)
@@ -80,7 +82,7 @@ func (s *Spec) buildOperation(method, pattern string, cfg RouteConfig) *Operatio
 
 			if body != nil {
 				t := reflect.TypeOf(body)
-				for t.Kind() == reflect.Ptr {
+				for t.Kind() == reflect.Pointer {
 					t = t.Elem()
 				}
 				schema := s.reg.schemaFor(t)
@@ -91,6 +93,13 @@ func (s *Spec) buildOperation(method, pattern string, cfg RouteConfig) *Operatio
 
 			op.Responses[key] = resp
 		}
+	}
+
+	switch {
+	case cfg.NoSecurity:
+		op.Security = []SecurityRequirement{}
+	case cfg.Security != nil:
+		op.Security = cfg.Security
 	}
 
 	return op
