@@ -13,6 +13,11 @@ import (
 
 const maxBodyBytes = 4 << 20
 
+// BindQuery decodes URL query parameters into dst and validates it.
+// dst must be a pointer to a struct with `query` tags.
+//
+//	var params ListUsersParams
+//	kori.BindQuery(r, &params)
 func BindQuery(r *http.Request, dst any) error {
 	if err := decodeQuery(r, dst); err != nil {
 		return err
@@ -21,6 +26,11 @@ func BindQuery(r *http.Request, dst any) error {
 	return validateStruct(dst)
 }
 
+// BindPath decodes chi URL parameters into dst and validates it.
+// dst must be a pointer to a struct with `path` tags.
+//
+//	var params UserParams
+//	kori.BindPath(r, &params)
 func BindPath(r *http.Request, dst any) error {
 	if err := decodePath(r, dst); err != nil {
 		return err
@@ -29,6 +39,8 @@ func BindPath(r *http.Request, dst any) error {
 	return validateStruct(dst)
 }
 
+// BindHeader decodes HTTP headers into dst and validates it.
+// dst must be a pointer to a struct with `header` tags.
 func BindHeader(r *http.Request, dst any) error {
 	if err := decodeHeader(r, dst); err != nil {
 		return err
@@ -37,6 +49,8 @@ func BindHeader(r *http.Request, dst any) error {
 	return validateStruct(dst)
 }
 
+// BindJSON decodes the request body as JSON into dst and validates it.
+// Body is limited to 4 MB. Returns a 422 HTTPError on validation failure.
 func BindJSON(r *http.Request, dst any) error {
 	if r.Body == nil || r.Body == http.NoBody {
 		return validateStruct(dst)
@@ -60,6 +74,8 @@ func BindJSON(r *http.Request, dst any) error {
 	return validateStruct(dst)
 }
 
+// Bind decodes path, query, and header params into dst and validates it.
+// Convenience wrapper around BindPath + BindQuery + BindHeader.
 func Bind(r *http.Request, dst any) error {
 	if err := decodePath(r, dst); err != nil {
 		return err

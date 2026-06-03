@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// Config holds the OpenAPI specification metadata.
 type Config struct {
 	Title       string
 	Version     string
@@ -11,6 +12,7 @@ type Config struct {
 	Servers     []Server
 }
 
+// Spec builds an OpenAPI 3.1 specification from registered routes and types.
 type Spec struct {
 	mu              sync.RWMutex
 	config          Config
@@ -20,6 +22,12 @@ type Spec struct {
 	globalSecurity  []SecurityRequirement
 }
 
+// NewSpec creates a new OpenAPI spec builder.
+//
+//	doc := openapi.NewSpec(openapi.Config{
+//	    Title:   "My API",
+//	    Version: "1.0.0",
+//	})
 func NewSpec(cfg Config) *Spec {
 	return &Spec{
 		config:          cfg,
@@ -29,12 +37,15 @@ func NewSpec(cfg Config) *Spec {
 	}
 }
 
+// AddSecurityScheme registers a security scheme for use by routes.
 func (s *Spec) AddSecurityScheme(name string, scheme SecurityScheme) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.securitySchemes[name] = scheme
 }
 
+// SetGlobalSecurity sets security requirements that apply to all routes.
+// Individual routes can override this via RouteConfig.Security.
 func (s *Spec) SetGlobalSecurity(reqs ...SecurityRequirement) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

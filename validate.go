@@ -58,6 +58,8 @@ func validateStruct(v any) error {
 	return nil
 }
 
+// ValidationDetail describes a single field validation error.
+// Returned as Details in the 422 HTTPError response.
 type ValidationDetail struct {
 	Field   string `json:"field"`
 	Tag     string `json:"tag"`

@@ -9,6 +9,7 @@ import (
 	"github.com/douglasmai4/kori"
 )
 
+// RouteConfig configures the OpenAPI operation for a route.
 type RouteConfig struct {
 	OperationID string
 	Summary     string
@@ -22,6 +23,13 @@ type RouteConfig struct {
 	NoSecurity  bool
 }
 
+// Route returns an Option that registers the route in the OpenAPI spec.
+//
+//	kori.GET(r, "/todos", listTodos, doc.Route(openapi.RouteConfig{
+//	    Summary: "List all todos",
+//	    Params:  &ListParams{},
+//	    Responses: map[int]any{200: &TodoList{}},
+//	}))
 func (s *Spec) Route(cfg RouteConfig) kori.Option {
 	return func(ri *kori.RouteInfo) {
 		op := s.buildOperation(ri.Method, ri.Pattern, cfg)

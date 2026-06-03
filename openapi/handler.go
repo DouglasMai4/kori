@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// JSONHandler returns an HTTP handler that serves the OpenAPI spec as JSON.
 func (s *Spec) JSONHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		doc := s.build()
@@ -19,6 +20,7 @@ func (s *Spec) JSONHandler() http.HandlerFunc {
 	}
 }
 
+// YAMLHandler returns an HTTP handler that serves the OpenAPI spec as YAML.
 func (s *Spec) YAMLHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		doc := s.build()
@@ -42,6 +44,8 @@ func (s *Spec) YAMLHandler() http.HandlerFunc {
 	}
 }
 
+// ScalarHandler returns an HTTP handler that serves the Scalar API reference UI.
+// specURL is the URL where the spec JSON is served (e.g. "/openapi.json").
 func (s *Spec) ScalarHandler(specURL string, opts ...ScalarOptions) http.HandlerFunc {
 	o := ScalarOptions{}
 	if len(opts) > 0 {
@@ -56,6 +60,7 @@ func (s *Spec) ScalarHandler(specURL string, opts ...ScalarOptions) http.Handler
 	}
 }
 
+// ScalarOptions customizes the Scalar API reference UI.
 type ScalarOptions struct {
 	Theme              string
 	DarkMode           bool

@@ -15,6 +15,7 @@ type info struct {
 	Description string `json:"description,omitempty"`
 }
 
+// Server represents an OpenAPI server object.
 type Server struct {
 	URL         string `json:"url"`
 	Description string `json:"description,omitempty"`
@@ -22,6 +23,7 @@ type Server struct {
 
 type pathItem map[string]*Operation
 
+// Operation represents an OpenAPI path operation (GET, POST, etc.).
 type Operation struct {
 	OperationID string                `json:"operationId,omitempty"`
 	Summary     string                `json:"summary,omitempty"`
@@ -34,6 +36,7 @@ type Operation struct {
 	Security    []SecurityRequirement `json:"security,omitempty"`
 }
 
+// Parameter represents an OpenAPI parameter (path, query, or header).
 type Parameter struct {
 	Name        string  `json:"name"`
 	In          string  `json:"in"` // "path", "query", "header"
@@ -44,19 +47,23 @@ type Parameter struct {
 	Example     any     `json:"example,omitempty"`
 }
 
+// RequestBody represents an OpenAPI request body.
 type RequestBody struct {
 	Required    bool                 `json:"required,omitempty"`
 	Description string               `json:"description,omitempty"`
 	Content     map[string]MediaType `json:"content"`
 }
 
+// MediaType describes the schema and example for a request/response body.
 type MediaType struct {
 	Schema  *Schema `json:"schema,omitempty"`
 	Example any     `json:"example,omitempty"`
 }
 
+// Responses maps status codes to response definitions.
 type Responses map[string]*Response
 
+// Response represents an OpenAPI response.
 type Response struct {
 	Description string               `json:"description"`
 	Content     map[string]MediaType `json:"content,omitempty"`
@@ -67,6 +74,8 @@ type components struct {
 	SecuritySchemes map[string]SecurityScheme `json:"securitySchemes,omitempty"`
 }
 
+// Schema represents an OpenAPI schema object.
+// Generated automatically from Go types via the Spec builder.
 type Schema struct {
 	Ref string `json:"$ref,omitempty"`
 

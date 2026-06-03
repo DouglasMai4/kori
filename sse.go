@@ -9,8 +9,11 @@ import (
 	"strings"
 )
 
+// ErrStreamingNotSupported is returned when the ResponseWriter does not
+// implement http.Flusher and therefore cannot be used for SSE.
 var ErrStreamingNotSupported = errors.New("kori: response writer does not support streaming (does not implement http.Flusher)")
 
+// SSEEvent represents a single Server-Sent Event.
 type SSEEvent struct {
 	ID    string
 	Event string
@@ -18,11 +21,15 @@ type SSEEvent struct {
 	Retry int
 }
 
+// SSEWriter writes Server-Sent Events to an http.ResponseWriter.
 type SSEWriter struct {
 	w       http.ResponseWriter
 	flusher http.Flusher
 }
 
+// NewSSEWriter creates an SSEWriter, sets the SSE headers, and flushes the
+// initial response. Returns ErrStreamingNotSupported if the ResponseWriter
+// does not support flushing.
 func NewSSEWriter(w http.ResponseWriter) (*SSEWriter, error) {
 	fluser, ok := w.(http.Flusher)
 	if !ok {
