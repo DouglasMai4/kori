@@ -1,11 +1,12 @@
 package openapi
 
 type document struct {
-	OpenAPI    string              `json:"openapi"`
-	Info       info                `json:"info"`
-	Servers    []Server            `json:"servers,omitempty"`
-	Paths      map[string]pathItem `json:"paths,omitempty"`
-	Components *components         `json:"components,omitempty"`
+	OpenAPI    string                `json:"openapi"`
+	Info       info                  `json:"info"`
+	Servers    []Server              `json:"servers,omitempty"`
+	Security   []SecurityRequirement `json:"security,omitempty"`
+	Paths      map[string]pathItem   `json:"paths,omitempty"`
+	Components *components           `json:"components,omitempty"`
 }
 
 type info struct {
@@ -22,14 +23,15 @@ type Server struct {
 type pathItem map[string]*Operation
 
 type Operation struct {
-	OperationID string       `json:"operationId,omitempty"`
-	Summary     string       `json:"summary,omitempty"`
-	Description string       `json:"description,omitempty"`
-	Tags        []string     `json:"tags,omitempty"`
-	Deprecated  bool         `json:"deprecated,omitempty"`
-	Parameters  []Parameter  `json:"parameters,omitempty"`
-	RequestBody *RequestBody `json:"requestBody,omitempty"`
-	Responses   Responses    `json:"responses"`
+	OperationID string                `json:"operationId,omitempty"`
+	Summary     string                `json:"summary,omitempty"`
+	Description string                `json:"description,omitempty"`
+	Tags        []string              `json:"tags,omitempty"`
+	Deprecated  bool                  `json:"deprecated,omitempty"`
+	Parameters  []Parameter           `json:"parameters,omitempty"`
+	RequestBody *RequestBody          `json:"requestBody,omitempty"`
+	Responses   Responses             `json:"responses"`
+	Security    []SecurityRequirement `json:"security,omitempty"`
 }
 
 type Parameter struct {
@@ -61,7 +63,8 @@ type Response struct {
 }
 
 type components struct {
-	Schemas map[string]*Schema `json:"schemas,omitempty"`
+	Schemas         map[string]*Schema        `json:"schemas,omitempty"`
+	SecuritySchemes map[string]SecurityScheme `json:"securitySchemes,omitempty"`
 }
 
 type Schema struct {
