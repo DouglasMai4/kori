@@ -111,6 +111,76 @@ kori.GET(r, "/todos", listTodos,
 - `Params` — a struct with `path`, `query`, `header` tags. Path params are automatically `required`.
 - `Body` — a struct. Skipped for GET, HEAD, DELETE, OPTIONS, TRACE.
 - `Responses` — if empty, generates a `default` response with no schema.
+- `Security` — per-route security requirements (overrides global `SetGlobalSecurity`).
+- `NoSecurity` — set to `true` to mark an endpoint as unauthenticated (empty `security: []`).
+
+---
+
+## Security schemes
+
+```go
+spec := kopenapi.NewSpec(kopenapi.Config{Title: "My API", Version: "1.0.0"})
+
+// Register schemes
+spec.AddSecurityScheme("bearer", kopenapi.BearerAuth("JWT"))
+spec.AddSecurityScheme("apiKey", kopenapi.APIKeyAuth("X-Api-Key", kopenapi.InHeader))
+
+// Global security — applied to all endpoints by default
+spec.SetGlobalSecurity(kopenapi.Require("bearer"))
+```
+
+### Scheme constructors
+
+| Constructor | HTTP Security | OpenAPI `type` |
+|---|---|---|
+| `BearerAuth(format...)` | `Authorization: Bearer <token>` | `http` / `bearer` |
+| `BasicAuth()` | `Authorization: Basic <base64>` | `http` / `basic` |
+| `APIKeyAuth(name, in)` | Header, query, or cookie key | `apiKey` |
+| `OAuth2(flows)` | OAuth 2.0 authorization | `oauth2` |
+| `OpenIDConnect(discoveryURL)` | OpenID Connect | `openIdConnect` |
+
+### Per-route overrides
+
+```go
+// Override global security for a specific endpoint
+kori.DELETE(api, "/projects/{id}", deleteProject,
+    spec.Route(kopenapi.RouteConfig{
+        Security: []kopenapi.SecurityRequirement{kopenapi.Require("apiKey")},
+        // ...
+    }),
+)
+
+// Mark an endpoint as public (no security)
+kori.GET(api, "/projects", listProjects,
+    spec.Route(kopenapi.RouteConfig{
+        NoSecurity: true,
+        // ...
+    }),
+)
+```
+
+### Security requirements
+
+```go
+kopenapi.Require("bearer")                // bearer with no scopes
+kopenapi.Require("bearer", "apiKey")      // ANY of the listed schemes (OR)
+kopenapi.RequireScopes("oauth", "read")   // OAuth2 with required scopes
+```
+
+### Full example
+
+See [`examples/security/main.go`](./examples/security/main.go) — a Projects API with:
+
+- Global bearer auth with a public endpoint (`NoSecurity`)
+- Per-route security override (API key for DELETE)
+- Bearer and API key scheme definitions
+- Auto-generated security fields in the spec
+
+```bash
+cd openapi/examples/security && go run .
+
+curl http://localhost:8080/openapi.json  # see securitySchemes + security in each operation
+```
 
 ---
 
@@ -223,9 +293,9 @@ kori.GET(r, "/todos", listTodos, spec.Route(cfg))    // documented
 
 ---
 
-## Full example
+## Full examples
 
-See [`examples/openapi/main.go`](./examples/openapi/main.go) — a TODOs API with:
+### TODOs API — [`examples/openapi/main.go`](./examples/openapi/main.go)
 
 - Spec config with title, version, servers
 - `RouteConfig` with params, body, and responses for each endpoint
@@ -239,6 +309,20 @@ cd openapi/examples/openapi && go run .
 
 curl http://localhost:8080/openapi.json
 curl http://localhost:8080/openapi.yaml
+open http://localhost:8080/docs
+```
+
+### Security schemes — [`examples/security/main.go`](./examples/security/main.go)
+
+- Global bearer auth with per-route overrides
+- Public endpoints via `NoSecurity`
+- API key auth scoped to a single endpoint
+- Bearer, API Key, and OAuth2 scheme definitions
+
+```bash
+cd openapi/examples/security && go run .
+
+curl http://localhost:8080/openapi.json
 open http://localhost:8080/docs
 ```
 
