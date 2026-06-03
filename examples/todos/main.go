@@ -95,10 +95,7 @@ func (s *store) list(completed *bool, search string, page, pageSize int) ([]*Tod
 		return nil, total
 	}
 
-	end := start + pageSize
-	if end > total {
-		end = total
-	}
+	end := min(start+pageSize, total)
 
 	return filtered[start:end], total
 }

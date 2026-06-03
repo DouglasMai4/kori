@@ -71,7 +71,7 @@ func (s *SSEWriter) Send(event SSEEvent) error {
 		b.WriteByte('\n')
 	}
 
-	for _, line := range strings.Split(event.Data, "\n") {
+	for line := range strings.SplitSeq(event.Data, "\n") {
 		b.WriteString("data: ")
 		b.WriteString(line)
 		b.WriteByte('\n')

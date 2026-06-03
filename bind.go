@@ -100,7 +100,7 @@ func decodeQuery(r *http.Request, dst any) error {
 
 		var vals []string
 		for _, v := range raw {
-			for _, part := range strings.Split(v, ",") {
+			for part := range strings.SplitSeq(v, ",") {
 				if s := strings.TrimSpace(part); s != "" {
 					vals = append(vals, s)
 				}

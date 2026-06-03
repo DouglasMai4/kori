@@ -35,8 +35,7 @@ func getValidator() *validator.Validate {
 
 func validateStruct(v any) error {
 	if err := getValidator().Struct(v); err != nil {
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
+		if ve, ok := errors.AsType[validator.ValidationErrors](err); ok {
 			details := make([]ValidationDetail, len(ve))
 
 			for i, fe := range ve {
