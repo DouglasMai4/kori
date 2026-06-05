@@ -20,7 +20,7 @@ func getValidator() *validator.Validate {
 		vld = validator.New(validator.WithRequiredStructEnabled())
 
 		vld.RegisterTagNameFunc(func(f reflect.StructField) string {
-			for _, tag := range []string{"json", "query", "path", "header"} {
+			for _, tag := range []string{"json", "query", "path", "header", "form"} {
 				if v := f.Tag.Get(tag); v != "" {
 					return strings.Split(v, ",")[0]
 				}
@@ -49,7 +49,7 @@ func validateStruct(v any) error {
 
 			return &HTTPError{
 				Status:  http.StatusUnprocessableEntity,
-				Message: "valiation failed",
+				Message: "validation failed",
 				Details: details,
 			}
 		}
