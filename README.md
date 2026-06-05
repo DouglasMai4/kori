@@ -5,7 +5,7 @@
 Kori adds three things to vanilla Chi:
 
 1. **Error return** — handlers return `error` instead of writing 500 by hand
-2. **Binding helpers** — `BindQuery`, `BindJSON`, `BindPath`, `BindHeader`
+2. **Binding helpers** — `BindQuery`, `BindJSON`, `BindPath`, `BindHeader`, `BindForm`, `BindMultipart`
 3. **Response helpers** — `JSON`, `Text`, `NoContent`
 
 `w http.ResponseWriter` and `r *http.Request` stay explicit. Chi is never hidden.
@@ -191,6 +191,61 @@ func handler(w http.ResponseWriter, r *http.Request) error {
     }
 }
 ```
+
+### `kori.BindForm(r, &dst)`
+
+Populates a struct from URL-encoded form values using the `form` tag.
+
+```go
+type ContactInput struct {
+    Name      string `form:"name"      validate:"required,min=2,max=100"`
+    Email     string `form:"email"     validate:"required,email"`
+    Message   string `form:"message"   validate:"required,min=10,max=1000"`
+    Subscribe bool   `form:"subscribe"`
+}
+
+func handleContact(w http.ResponseWriter, r *http.Request) error {
+    var input ContactInput
+    if err := kori.BindForm(r, &input); err != nil {
+        return err
+    }
+}
+```
+
+### `kori.BindMultipart(r, &dst)`
+
+Decodes `multipart/form-data` — both form values and file uploads — using the `form` tag.
+
+```go
+type ProfileInput struct {
+    DisplayName string                `form:"display_name" validate:"required,min=2,max=50"`
+    Avatar      *multipart.FileHeader `form:"avatar"       validate:"required"`
+}
+
+type GalleryInput struct {
+    Title  string                    `form:"title"  validate:"required"`
+    Tags   []string                  `form:"tags"`
+    Photos []*multipart.FileHeader   `form:"photos" validate:"required,min=1"`
+}
+
+func handleProfile(w http.ResponseWriter, r *http.Request) error {
+    var input ProfileInput
+    if err := kori.BindMultipart(r, &input); err != nil {
+        return err
+    }
+    // input.Avatar is *multipart.FileHeader
+}
+
+func handleGallery(w http.ResponseWriter, r *http.Request) error {
+    var input GalleryInput
+    if err := kori.BindMultipart(r, &input); err != nil {
+        return err
+    }
+    // input.Photos is []*multipart.FileHeader
+}
+```
+
+File fields must be `*multipart.FileHeader` (single upload) or `[]*multipart.FileHeader` (multiple uploads). Non-file fields follow the same rules as `BindForm`.
 
 ### Supported types
 
@@ -379,16 +434,11 @@ kori.POST(r, "/users", createUser)
 
 ---
 
-## Full example
+## Examples
 
-See [`examples/todos/main.go`](./examples/todos/main.go) — a TODOs API with:
+- [`examples/todos/main.go`](./examples/todos/main.go) — a TODOs API with `BindQuery`, `BindJSON`, per-route middleware, groups, and implicit error handling.
 
-- `BindQuery` with validation and filtering
-- `chi.URLParam` directly for simple path params
-- `BindJSON` with typed and validated body
-- Per-route middleware (`kori.Use`)
-- Group with prefix
-- Implicit error handler
+- [`examples/forms/main.go`](./examples/forms/main.go) — a form demo with `BindForm` (contact form) and `BindMultipart` (profile + gallery uploads with `*multipart.FileHeader` and `[]*multipart.FileHeader`).
 
 ```bash
 cd examples/todos && go run .
@@ -404,13 +454,6 @@ curl -X PATCH http://localhost:8080/api/todos/1 \
      -d '{"completed":true}'
 curl -X DELETE http://localhost:8080/api/todos/1
 ```
-
----
-
-## Roadmap
-
-- **v0.2** — `kori/openapi`: OpenAPI 3.1 spec generation via `Option` — [read more](./openapi/README.md)
-- **v0.3** — `kori/testing`: test helpers for handlers, `BindMultipart` for `multipart/form-data`
 
 ---
 
