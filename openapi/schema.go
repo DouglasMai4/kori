@@ -22,7 +22,7 @@ func newRegistry() *registry {
 
 func (r *registry) schemaFor(t reflect.Type) *Schema {
 	nullable := false
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		nullable = true
 		t = t.Elem()
 	}
@@ -77,31 +77,32 @@ func (r *registry) schemaFor(t reflect.Type) *Schema {
 
 func (r *registry) structSchema(t reflect.Type) *Schema {
 	name := t.Name()
-
-	if name != "" {
-		r.mu.Lock()
-		if r.inProgress[t] {
-			r.mu.Unlock()
-			return &Schema{Ref: "#/components/schemas/" + name}
-		}
-		if _, already := r.schemas[name]; already {
-			r.mu.Unlock()
-			return &Schema{Ref: "#/components/schemas/" + name}
-		}
-		r.inProgress[t] = true
-		r.mu.Unlock()
-
-		s := r.buildStructFields(t)
-
-		r.mu.Lock()
-		r.schemas[name] = s
-		delete(r.inProgress, t)
-		r.mu.Unlock()
-
-		return &Schema{Ref: "#/components/schemas/" + name}
+	if name == "" {
+		return r.buildStructFields(t)
 	}
 
-	return r.buildStructFields(t)
+	safeName := sanitizeSchemaName(name)
+
+	r.mu.Lock()
+	if r.inProgress[t] {
+		r.mu.Unlock()
+		return &Schema{Ref: "#/components/schemas/" + safeName}
+	}
+	if _, already := r.schemas[safeName]; already {
+		r.mu.Unlock()
+		return &Schema{Ref: "#/components/schemas/" + safeName}
+	}
+	r.inProgress[t] = true
+	r.mu.Unlock()
+
+	s := r.buildStructFields(t)
+
+	r.mu.Lock()
+	r.schemas[safeName] = s
+	delete(r.inProgress, t)
+	r.mu.Unlock()
+
+	return &Schema{Ref: "#/components/schemas/" + safeName}
 }
 
 func (r *registry) buildStructFields(t reflect.Type) *Schema {
@@ -119,7 +120,7 @@ func (r *registry) buildStructFields(t reflect.Type) *Schema {
 
 		if field.Anonymous {
 			ft := field.Type
-			if ft.Kind() == reflect.Ptr {
+			if ft.Kind() == reflect.Pointer {
 				ft = ft.Elem()
 			}
 			if ft.Kind() == reflect.Struct {
@@ -271,7 +272,7 @@ func jsonFieldName(f reflect.StructField) string {
 }
 
 func isRequired(f reflect.StructField) bool {
-	if f.Type.Kind() == reflect.Ptr {
+	if f.Type.Kind() == reflect.Pointer {
 		return false
 	}
 	for _, rule := range strings.Split(f.Tag.Get("validate"), ",") {
@@ -283,7 +284,7 @@ func isRequired(f reflect.StructField) bool {
 }
 
 func baseKind(t reflect.Type) reflect.Kind {
-	for t.Kind() == reflect.Ptr {
+	for t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	return t.Kind()
@@ -301,6 +302,71 @@ func isNumericKind(k reflect.Kind) bool {
 		return true
 	}
 	return false
+}
+
+// sanitizeSchemaName converts a Go type name into a valid OpenAPI component
+// name (matching ^[a-zA-Z0-9._-]+$). Generic instantiations such as
+// "SuccessResponse[pkg.HomeResponse]" become "SuccessResponse_HomeResponse".
+func sanitizeSchemaName(name string) string {
+	if !strings.ContainsAny(name, "[]") {
+		return name
+	}
+	var b strings.Builder
+	i, n := 0, len(name)
+	for i < n {
+		c := name[i]
+		switch c {
+		case '[', ',':
+			b.WriteByte('_')
+			i++
+			depth, j := 0, i
+		paramScan:
+			for j < n {
+				switch name[j] {
+				case '[':
+					depth++
+				case ']':
+					if depth == 0 {
+						break paramScan
+					}
+					depth--
+				case ',':
+					if depth == 0 {
+						break paramScan
+					}
+				}
+				j++
+			}
+			param := name[i:j]
+			i = j
+			typeEnd := strings.IndexByte(param, '[')
+			if typeEnd < 0 {
+				typeEnd = len(param)
+			}
+			typePart := param[:typeEnd]
+			if dot := strings.LastIndex(typePart, "."); dot >= 0 {
+				typePart = typePart[dot+1:]
+			}
+			b.WriteString(typePart)
+			// Recursively sanitize any nested generic portion.
+			if typeEnd < len(param) {
+				if inner := sanitizeSchemaName(param[typeEnd:]); inner != "" {
+					b.WriteByte('_')
+					b.WriteString(inner)
+				}
+			}
+		case ']', ' ', '*':
+			i++
+		default:
+			b.WriteByte(c)
+			i++
+		}
+	}
+	s := b.String()
+	for strings.Contains(s, "__") {
+		s = strings.ReplaceAll(s, "__", "_")
+	}
+	return strings.Trim(s, "_")
 }
 
 func parseExampleValue(raw string, kind reflect.Kind) any {
