@@ -27,44 +27,46 @@ func (r *registry) schemaFor(t reflect.Type) *Schema {
 		t = t.Elem()
 	}
 
-	var s *Schema
+	s := wellKnownSchema(t)
 
-	switch t.Kind() {
-	case reflect.String:
-		s = &Schema{Type: "string"}
+	if s == nil {
+		switch t.Kind() {
+		case reflect.String:
+			s = &Schema{Type: "string"}
 
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
-		s = &Schema{Type: "integer", Format: "int32"}
-	case reflect.Int64:
-		s = &Schema{Type: "integer", Format: "int64"}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+			s = &Schema{Type: "integer", Format: "int32"}
+		case reflect.Int64:
+			s = &Schema{Type: "integer", Format: "int64"}
 
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		s = &Schema{Type: "integer", Format: "int64"}
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			s = &Schema{Type: "integer", Format: "int64"}
 
-	case reflect.Float32:
-		s = &Schema{Type: "number", Format: "float"}
-	case reflect.Float64:
-		s = &Schema{Type: "number", Format: "double"}
+		case reflect.Float32:
+			s = &Schema{Type: "number", Format: "float"}
+		case reflect.Float64:
+			s = &Schema{Type: "number", Format: "double"}
 
-	case reflect.Bool:
-		s = &Schema{Type: "boolean"}
+		case reflect.Bool:
+			s = &Schema{Type: "boolean"}
 
-	case reflect.Slice:
-		items := r.schemaFor(t.Elem())
-		s = &Schema{Type: "array", Items: items}
+		case reflect.Slice:
+			items := r.schemaFor(t.Elem())
+			s = &Schema{Type: "array", Items: items}
 
-	case reflect.Map:
-		s = &Schema{Type: "object", AdditionalProperties: true}
+		case reflect.Map:
+			s = &Schema{Type: "object", AdditionalProperties: true}
 
-	case reflect.Struct:
-		s = r.structSchema(t)
+		case reflect.Struct:
+			s = r.structSchema(t)
 
-	case reflect.Interface:
-		s = &Schema{}
+		case reflect.Interface:
+			s = &Schema{}
 
-	default:
-		s = &Schema{Type: "string"}
-	}
+		default:
+			s = &Schema{Type: "string"}
+		}
+	} // end if s == nil
 
 	if nullable && s != nil && s.Ref == "" {
 		if typStr, ok := s.Type.(string); ok && typStr != "" {
@@ -302,6 +304,31 @@ func isNumericKind(k reflect.Kind) bool {
 		return true
 	}
 	return false
+}
+
+// wellKnownSchemas maps "<pkg-path>.<type-name>" to a fixed OpenAPI schema
+// for types whose Go struct representation does not reflect their wire format.
+// Keys follow the pattern returned by reflect.Type.PkgPath() + "." + Name().
+var wellKnownSchemas = map[string]*Schema{
+	// Standard library
+	"time.Time":                {Type: "string", Format: "date-time"},
+	"net/url.URL":              {Type: "string", Format: "uri"},
+	"net.IP":                   {Type: "string", Format: "ipv4"},
+	"encoding/json.RawMessage": {},
+
+	// github.com/google/uuid
+	"github.com/google/uuid.UUID": {Type: "string", Format: "uuid"},
+}
+
+// wellKnownSchema returns a fresh copy of the pre-defined schema for t if one
+// exists, or nil if t should be reflected normally.
+func wellKnownSchema(t reflect.Type) *Schema {
+	key := t.PkgPath() + "." + t.Name()
+	if tmpl, ok := wellKnownSchemas[key]; ok {
+		s := *tmpl
+		return &s
+	}
+	return nil
 }
 
 // sanitizeSchemaName converts a Go type name into a valid OpenAPI component
