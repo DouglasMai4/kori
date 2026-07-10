@@ -11,7 +11,7 @@ type Router struct {
 // Group creates a sub-router with the given prefix and middlewares.
 //
 //	users := kori.Group(r, "/users", authMiddleware)
-//	kori.GET(users, "", listUsers)
+//	kori.GET(users, "/", listUsers)
 //	kori.GET(users, "/{id}", getUser)
 func Group(r chi.Router, prefix string, middlewares ...Middleware) *Router {
 	fullPrefix := prefix

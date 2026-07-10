@@ -52,9 +52,16 @@ func OPTIONS(r chi.Router, pattern string, h Handler, opts ...Option) {
 }
 
 func register(r chi.Router, method, pattern string, h Handler, opts ...Option) {
+	if pattern == "" {
+		pattern = "/"
+	}
+
 	fullPattern := pattern
 	if kr, ok := r.(*Router); ok {
 		fullPattern = kr.prefix + pattern
+		if pattern == "/" && kr.prefix != "" {
+			fullPattern = kr.prefix
+		}
 	}
 
 	ri := &RouteInfo{Method: method, Pattern: fullPattern}
