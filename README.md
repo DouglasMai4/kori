@@ -18,7 +18,7 @@ Kori adds three things to vanilla Chi:
 go get github.com/douglasmai4/kori
 ```
 
-Go 1.22+.
+Go 1.26+.
 
 ---
 
