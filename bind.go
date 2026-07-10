@@ -176,7 +176,7 @@ func decodeStruct(
 		}
 
 		if err := setScalar(fv, raw); err != nil {
-			return BadRequest("invalid"+tagName+" param: "+tag, err.Error())
+			return BadRequest("invalid "+tagName+" param: "+tag, err.Error())
 		}
 	}
 

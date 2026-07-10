@@ -31,7 +31,7 @@ type SSEWriter struct {
 // initial response. Returns ErrStreamingNotSupported if the ResponseWriter
 // does not support flushing.
 func NewSSEWriter(w http.ResponseWriter) (*SSEWriter, error) {
-	fluser, ok := w.(http.Flusher)
+	flusher, ok := w.(http.Flusher)
 	if !ok {
 		return nil, ErrStreamingNotSupported
 	}
@@ -43,9 +43,9 @@ func NewSSEWriter(w http.ResponseWriter) (*SSEWriter, error) {
 	h.Set("X-Accel-Buffering", "no")
 
 	w.WriteHeader(http.StatusOK)
-	fluser.Flush()
+	flusher.Flush()
 
-	return &SSEWriter{w: w, flusher: fluser}, nil
+	return &SSEWriter{w: w, flusher: flusher}, nil
 }
 
 // Send writes event to the stream and flushes immediately.

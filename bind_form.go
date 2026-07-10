@@ -24,7 +24,7 @@ func SetMaxMultipartMemory(n int64) {
 // dst must be a pointer to a struct with `form` tags.
 func BindForm(r *http.Request, dst any) error {
 	if err := r.ParseForm(); err != nil {
-		return BadRequest("connot parse form body", err.Error())
+		return BadRequest("cannot parse form body", err.Error())
 	}
 	if err := decodeFormValues(r.PostForm, dst); err != nil {
 		return err
