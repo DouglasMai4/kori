@@ -3,7 +3,7 @@ module github.com/douglasmai4/kori/openapi
 go 1.26.3
 
 require (
-	github.com/douglasmai4/kori v0.2.1
+	github.com/douglasmai4/kori v0.4.1
 	github.com/go-chi/chi/v5 v5.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
