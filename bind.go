@@ -7,11 +7,22 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/go-chi/chi/v5"
 )
 
-const maxBodyBytes = 4 << 20
+var maxBodyBytes atomic.Int64
+
+func init() {
+	maxBodyBytes.Store(4 << 20)
+}
+
+// SetMaxBodyBytes sets the maximum size of a JSON request body.
+// Default is 4 MB.
+func SetMaxBodyBytes(n int64) {
+	maxBodyBytes.Store(n)
+}
 
 // BindQuery decodes URL query parameters into dst and validates it.
 // dst must be a pointer to a struct with `query` tags.
@@ -50,17 +61,25 @@ func BindHeader(r *http.Request, dst any) error {
 }
 
 // BindJSON decodes the request body as JSON into dst and validates it.
-// Body is limited to 4 MB. Returns a 422 HTTPError on validation failure.
+// Body is limited to 4 MB by default; configure it with SetMaxBodyBytes.
+// Returns a 413 HTTPError if the body exceeds the limit and a 422 HTTPError
+// on validation failure.
 func BindJSON(r *http.Request, dst any) error {
 	if r.Body == nil || r.Body == http.NoBody {
 		return validateStruct(dst)
 	}
 
-	data, err := io.ReadAll(io.LimitReader(r.Body, maxBodyBytes))
+	limit := maxBodyBytes.Load()
+
+	data, err := io.ReadAll(io.LimitReader(r.Body, limit+1))
 	defer r.Body.Close()
 
 	if err != nil {
 		return BadRequest("cannot read request body", err.Error())
+	}
+
+	if int64(len(data)) > limit {
+		return NewError(http.StatusRequestEntityTooLarge, "request body too large")
 	}
 
 	if len(data) == 0 {
