@@ -29,9 +29,9 @@ type ProfileInput struct {
 }
 
 type GalleryInput struct {
-	Title  string                    `form:"title" validate:"required"`
-	Tags   []string                  `form:"tags" validate:"required,min=1,dive,min=2"`
-	Photos []*multipart.FileHeader   `form:"photos" validate:"required,min=1"`
+	Title  string                  `form:"title" validate:"required"`
+	Tags   []string                `form:"tags" validate:"required,min=1,dive,min=2"`
+	Photos []*multipart.FileHeader `form:"photos" validate:"required,min=1"`
 }
 
 func main() {

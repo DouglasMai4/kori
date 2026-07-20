@@ -84,7 +84,7 @@ func decodeFormValues(values map[string][]string, dst any) error {
 		if fv.Kind() == reflect.Slice {
 			var expanded []string
 			for _, v := range vals {
-				for _, part := range strings.Split(v, ",") {
+				for part := range strings.SplitSeq(v, ",") {
 					if s := strings.TrimSpace(part); s != "" {
 						expanded = append(expanded, s)
 					}
@@ -144,8 +144,8 @@ func decodeFormFiles(files map[string][]*multipart.FileHeader, dst any) error {
 }
 
 var (
-	fileHeaderPtrType   = reflect.TypeOf((*multipart.FileHeader)(nil))
-	fileHeaderSliceType = reflect.TypeOf([]*multipart.FileHeader(nil))
+	fileHeaderPtrType   = reflect.TypeFor[*multipart.FileHeader]()
+	fileHeaderSliceType = reflect.TypeFor[[]*multipart.FileHeader]()
 )
 
 func isFileType(t reflect.Type) bool {

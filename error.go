@@ -75,6 +75,7 @@ var (
 
 // SetErrorHandler replaces the default error handler.
 // The handler receives every error returned from a Handler.
+//
 //	SetErrorHandler(func(w http.ResponseWriter, r *http.Request, err error) {
 //	    w.Write([]byte("custom error: " + err.Error()))
 //	})
