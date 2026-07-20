@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"slices"
 	"strings"
 )
 
@@ -45,8 +46,8 @@ func nonParamSegments(pattern string) []string {
 
 func endsOnParam(pattern string) bool {
 	parts := strings.Split(strings.TrimRight(pattern, "/"), "/")
-	for i := len(parts) - 1; i >= 0; i-- {
-		p := strings.TrimSpace(parts[i])
+	for _, part := range slices.Backward(parts) {
+		p := strings.TrimSpace(part)
 		if p == "" {
 			continue
 		}

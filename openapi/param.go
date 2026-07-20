@@ -19,10 +19,10 @@ func extractParams(dst any, reg *registry) []Parameter {
 
 	var params []Parameter
 
-	for i := range t.NumField() {
-		field := t.Field(i)
+	for field := range t.Fields() {
+		field := field
 
-		if !field.IsExported() {
+		if !field.IsExported() && !field.Anonymous {
 			continue
 		}
 
@@ -83,9 +83,6 @@ func extractParams(dst any, reg *registry) []Parameter {
 		}
 		if ex := field.Tag.Get("example"); ex != "" {
 			p.Example = parseExampleValue(ex, baseKind(field.Type))
-		}
-
-		if in == "query" && field.Type.Kind() == reflect.Slice {
 		}
 
 		params = append(params, p)

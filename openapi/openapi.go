@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"maps"
 	"sync"
 )
 
@@ -72,22 +73,16 @@ func (s *Spec) build() document {
 
 	if len(s.paths) > 0 {
 		doc.Paths = make(map[string]pathItem, len(s.paths))
-		for pattern, item := range s.paths {
-			doc.Paths[pattern] = item
-		}
+		maps.Copy(doc.Paths, s.paths)
 	}
 
 	s.reg.mu.Lock()
 	schemas := make(map[string]*Schema, len(s.reg.schemas))
-	for k, v := range s.reg.schemas {
-		schemas[k] = v
-	}
+	maps.Copy(schemas, s.reg.schemas)
 	s.reg.mu.Unlock()
 
 	schemes := make(map[string]SecurityScheme, len(s.securitySchemes))
-	for k, v := range s.securitySchemes {
-		schemes[k] = v
-	}
+	maps.Copy(schemes, s.securitySchemes)
 
 	if len(schemas) > 0 || len(schemes) > 0 {
 		doc.Components = &components{}

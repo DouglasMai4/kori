@@ -58,6 +58,7 @@ func BasicAuth() SecurityScheme {
 }
 
 // APIKeyAuth creates an API key security scheme.
+//
 //	name := openapi.APIKeyAuth("X-API-Key", openapi.InHeader)
 func APIKeyAuth(name string, in APIKeyLocation) SecurityScheme {
 	return SecurityScheme{Type: "apiKey", Name: name, In: string(in)}

@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"maps"
 	"reflect"
 	"strconv"
 	"strings"
@@ -113,10 +114,10 @@ func (r *registry) buildStructFields(t reflect.Type) *Schema {
 		Properties: make(map[string]*Schema),
 	}
 
-	for i := range t.NumField() {
-		field := t.Field(i)
+	for field := range t.Fields() {
+		field := field
 
-		if !field.IsExported() {
+		if !field.IsExported() && !field.Anonymous {
 			continue
 		}
 
@@ -127,9 +128,7 @@ func (r *registry) buildStructFields(t reflect.Type) *Schema {
 			}
 			if ft.Kind() == reflect.Struct {
 				embedded := r.buildStructFields(ft)
-				for k, v := range embedded.Properties {
-					s.Properties[k] = v
-				}
+				maps.Copy(s.Properties, embedded.Properties)
 				s.Required = append(s.Required, embedded.Required...)
 			}
 			continue
@@ -182,7 +181,7 @@ func enrichFromValidate(s *Schema, tag string, kind reflect.Kind) {
 		return
 	}
 
-	for _, rule := range strings.Split(tag, ",") {
+	for rule := range strings.SplitSeq(tag, ",") {
 		rule = strings.TrimSpace(rule)
 		switch {
 		case rule == "email":
@@ -266,7 +265,7 @@ func jsonFieldName(f reflect.StructField) string {
 	if tag == "" {
 		return f.Name
 	}
-	name := strings.Split(tag, ",")[0]
+	name, _, _ := strings.Cut(tag, ",")
 	if name == "" {
 		return f.Name
 	}
@@ -277,7 +276,7 @@ func isRequired(f reflect.StructField) bool {
 	if f.Type.Kind() == reflect.Pointer {
 		return false
 	}
-	for _, rule := range strings.Split(f.Tag.Get("validate"), ",") {
+	for rule := range strings.SplitSeq(f.Tag.Get("validate"), ",") {
 		if strings.TrimSpace(rule) == "required" {
 			return true
 		}
