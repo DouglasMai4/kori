@@ -328,6 +328,8 @@ func TestSanitizeSchemaName(t *testing.T) {
 		"Page[*pkg.Thing]":                  "Page_Thing",
 		"Map[string,pkg.Val]":               "Map_string_Val",
 		"Wrap[Outer[pkg.Inner]]":            "Wrap_Outer_Inner",
+		"Paginated[[]github.com/x/y.Item]":  "Paginated_Item",
+		"Paginated[[]*github.com/x/y.Item]": "Paginated_Item",
 	}
 	for in, want := range cases {
 		if got := sanitizeSchemaName(in); got != want {

@@ -363,7 +363,7 @@ func sanitizeSchemaName(name string) string {
 				}
 				j++
 			}
-			param := name[i:j]
+			param := strings.TrimLeft(name[i:j], "[]* ")
 			i = j
 			typeEnd := strings.IndexByte(param, '[')
 			if typeEnd < 0 {
