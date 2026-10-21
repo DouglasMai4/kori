@@ -51,7 +51,7 @@ func (r *registry) schemaFor(t reflect.Type) *Schema {
 		case reflect.Bool:
 			s = &Schema{Type: "boolean"}
 
-		case reflect.Slice:
+		case reflect.Slice, reflect.Array:
 			items := r.schemaFor(t.Elem())
 			s = &Schema{Type: "array", Items: items}
 
@@ -331,68 +331,98 @@ func wellKnownSchema(t reflect.Type) *Schema {
 }
 
 // sanitizeSchemaName converts a Go type name into a valid OpenAPI component
-// name (matching ^[a-zA-Z0-9._-]+$). Generic instantiations such as
-// "SuccessResponse[pkg.HomeResponse]" become "SuccessResponse_HomeResponse".
+// name (matching ^[a-zA-Z0-9._-]+$). Generic instantiations drop package
+// paths but keep the shape of each type argument, so distinct instantiations
+// never collide:
+//
+//	SuccessResponse[pkg.HomeResponse]   -> SuccessResponse_HomeResponse
+//	Paginated[[]pkg.Item]               -> Paginated_ListItem
+//	Wrap[map[string]pkg.Item]           -> Wrap_MapString_Item
 func sanitizeSchemaName(name string) string {
-	if !strings.ContainsAny(name, "[]") {
+	open := strings.IndexByte(name, '[')
+	if open < 0 {
 		return name
 	}
 	var b strings.Builder
-	i, n := 0, len(name)
-	for i < n {
-		c := name[i]
-		switch c {
-		case '[', ',':
-			b.WriteByte('_')
-			i++
-			depth, j := 0, i
-		paramScan:
-			for j < n {
-				switch name[j] {
-				case '[':
-					depth++
-				case ']':
-					if depth == 0 {
-						break paramScan
-					}
-					depth--
-				case ',':
-					if depth == 0 {
-						break paramScan
-					}
-				}
-				j++
+	b.WriteString(name[:open])
+	for _, arg := range splitTypeArgs(name[open+1 : matchingBracket(name, open)]) {
+		b.WriteByte('_')
+		b.WriteString(sanitizeTypeArg(arg))
+	}
+	return b.String()
+}
+
+// sanitizeTypeArg renders a single generic type argument as an identifier.
+func sanitizeTypeArg(s string) string {
+	s = strings.TrimSpace(s)
+	switch {
+	case s == "":
+		return ""
+	case s[0] == '*':
+		return sanitizeTypeArg(s[1:])
+	case strings.HasPrefix(s, "map["):
+		end := matchingBracket(s, 3)
+		key := sanitizeTypeArg(s[4:end])
+		return "Map" + capitalize(key) + "_" + sanitizeTypeArg(s[end+1:])
+	case s[0] == '[':
+		end := matchingBracket(s, 0)
+		return "List" + capitalize(sanitizeTypeArg(s[end+1:]))
+	}
+
+	base, rest := s, ""
+	if open := strings.IndexByte(s, '['); open >= 0 {
+		base, rest = s[:open], s[open:]
+	}
+	if dot := strings.LastIndex(base, "."); dot >= 0 {
+		base = base[dot+1:]
+	}
+	if rest == "" {
+		return base
+	}
+	return sanitizeSchemaName(base + rest)
+}
+
+func matchingBracket(s string, open int) int {
+	depth := 0
+	for i := open; i < len(s); i++ {
+		switch s[i] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+			if depth == 0 {
+				return i
 			}
-			param := strings.TrimLeft(name[i:j], "[]* ")
-			i = j
-			typeEnd := strings.IndexByte(param, '[')
-			if typeEnd < 0 {
-				typeEnd = len(param)
-			}
-			typePart := param[:typeEnd]
-			if dot := strings.LastIndex(typePart, "."); dot >= 0 {
-				typePart = typePart[dot+1:]
-			}
-			b.WriteString(typePart)
-			// Recursively sanitize any nested generic portion.
-			if typeEnd < len(param) {
-				if inner := sanitizeSchemaName(param[typeEnd:]); inner != "" {
-					b.WriteByte('_')
-					b.WriteString(inner)
-				}
-			}
-		case ']', ' ', '*':
-			i++
-		default:
-			b.WriteByte(c)
-			i++
 		}
 	}
-	s := b.String()
-	for strings.Contains(s, "__") {
-		s = strings.ReplaceAll(s, "__", "_")
+	return len(s) - 1
+}
+
+// splitTypeArgs splits a generic argument list on top-level commas.
+func splitTypeArgs(s string) []string {
+	var args []string
+	depth, start := 0, 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+		case ',':
+			if depth == 0 {
+				args = append(args, s[start:i])
+				start = i + 1
+			}
+		}
 	}
-	return strings.Trim(s, "_")
+	return append(args, s[start:])
+}
+
+func capitalize(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 func parseExampleValue(raw string, kind reflect.Kind) any {

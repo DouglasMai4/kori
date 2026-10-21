@@ -3,7 +3,9 @@ package openapi
 import (
 	"encoding/json"
 	"reflect"
+	"regexp"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 )
@@ -328,13 +330,58 @@ func TestSanitizeSchemaName(t *testing.T) {
 		"Page[*pkg.Thing]":                  "Page_Thing",
 		"Map[string,pkg.Val]":               "Map_string_Val",
 		"Wrap[Outer[pkg.Inner]]":            "Wrap_Outer_Inner",
-		"Paginated[[]github.com/x/y.Item]":  "Paginated_Item",
-		"Paginated[[]*github.com/x/y.Item]": "Paginated_Item",
+		"Paginated[[]github.com/x/y.Item]":  "Paginated_ListItem",
+		"Paginated[[]*github.com/x/y.Item]": "Paginated_ListItem",
+		"Paginated[[3]pkg.Item]":            "Paginated_ListItem",
+		"Wrap[map[string]github.com/x/y.V]": "Wrap_MapString_V",
+		"Pair[pkg.A,[]pkg.B]":               "Pair_A_ListB",
+		"Wrap[pkg.Page[[]pkg.Item]]":        "Wrap_Page_ListItem",
+		"Wrap[[][]pkg.Item]":                "Wrap_ListListItem",
 	}
+	valid := regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 	for in, want := range cases {
-		if got := sanitizeSchemaName(in); got != want {
+		got := sanitizeSchemaName(in)
+		if got != want {
 			t.Errorf("sanitizeSchemaName(%q) = %q, want %q", in, got, want)
 		}
+		if !valid.MatchString(got) {
+			t.Errorf("sanitizeSchemaName(%q) = %q is not a valid component name", in, got)
+		}
+	}
+}
+
+type sliceItem struct {
+	ID int `json:"id"`
+}
+
+type sliceWrap[T any] struct {
+	Data T `json:"data"`
+}
+
+// Regression: Wrap[Item] and Wrap[[]Item] used to share one component name,
+// so the list response pointed to the single-object schema.
+func TestGenericSliceArgDoesNotCollide(t *testing.T) {
+	r := newRegistry()
+	single := r.schemaFor(reflect.TypeFor[sliceWrap[sliceItem]]())
+	list := r.schemaFor(reflect.TypeFor[sliceWrap[[]sliceItem]]())
+
+	if single.Ref == list.Ref {
+		t.Fatalf("both instantiations share ref %q", single.Ref)
+	}
+	listSchema := r.schemas[strings.TrimPrefix(list.Ref, "#/components/schemas/")]
+	if listSchema == nil {
+		t.Fatalf("component for %q not registered", list.Ref)
+	}
+	if got := listSchema.Properties["data"].Type; got != "array" {
+		t.Errorf("list data type = %v, want array", got)
+	}
+}
+
+func TestFixedArraySchema(t *testing.T) {
+	r := newRegistry()
+	s := r.schemaFor(reflect.TypeFor[[2]sliceItem]())
+	if s.Type != "array" || s.Items == nil || s.Items.Ref == "" {
+		t.Errorf("[2]T schema = %+v, want array of $ref", s)
 	}
 }
 
