@@ -10,6 +10,8 @@ Kori adds three things to vanilla Chi:
 
 `w http.ResponseWriter` and `r *http.Request` stay explicit. Chi is never hidden.
 
+📖 **Documentation:** [kori.douglasmaia.dev.br](https://kori.douglasmaia.dev.br) · [Português](https://kori.douglasmaia.dev.br/pt-br/)
+
 ---
 
 ## Installation

@@ -4,6 +4,8 @@
 
 `kori/openapi` generates your OpenAPI 3.1 spec from the same Go structs you use for binding and validation. It hooks into Kori's `Option` system, so spec registration lives next to route registration — no CLI step, no YAML files, no duplication.
 
+📖 **Documentation:** [kori.douglasmaia.dev.br/openapi](https://kori.douglasmaia.dev.br/openapi/)
+
 ---
 
 ## Installation
@@ -12,7 +14,7 @@
 go get github.com/douglasmai4/kori/openapi
 ```
 
-Requires `github.com/douglasmai4/kori` (v0.1.0+). Go 1.22+.
+Requires `github.com/douglasmai4/kori` (v0.1.0+). Go 1.26+.
 
 ---
 
