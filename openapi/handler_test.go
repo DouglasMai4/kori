@@ -107,11 +107,36 @@ func TestScalarHandler_Options(t *testing.T) {
 
 func TestBuildScalarHTML_DefaultTheme(t *testing.T) {
 	html := buildScalarHTML("T", "/s.json", ScalarOptions{})
-	if !strings.Contains(html, "default") {
-		t.Error("default theme should be applied when none specified")
+	if !strings.Contains(html, `"theme":"none"`) {
+		t.Error("kori theme should disable Scalar's built-in theme")
+	}
+	if !strings.Contains(html, "--scalar-color-accent") {
+		t.Error("kori theme CSS should be injected by default")
+	}
+	if !strings.Contains(html, "geist") {
+		t.Error("kori theme should load Geist fonts")
 	}
 
 	if strings.Contains(html, `data-configuration='{`) && strings.Contains(html, "'}'") {
 		t.Error("unescaped single quote leaked into data attribute")
+	}
+}
+
+func TestBuildScalarHTML_BuiltinThemeSkipsKori(t *testing.T) {
+	html := buildScalarHTML("T", "/s.json", ScalarOptions{Theme: "purple"})
+	if !strings.Contains(html, `"theme":"purple"`) {
+		t.Error("built-in theme should be passed through")
+	}
+	if strings.Contains(html, "--scalar-color-accent") {
+		t.Error("kori CSS should not be injected for other themes")
+	}
+}
+
+func TestBuildScalarHTML_CustomCSSAfterTheme(t *testing.T) {
+	html := buildScalarHTML("T", "/s.json", ScalarOptions{CustomCSS: ".x{color:red}"})
+	themeAt := strings.Index(html, "--scalar-color-accent")
+	customAt := strings.Index(html, ".x{color:red}")
+	if themeAt < 0 || customAt < themeAt {
+		t.Error("custom CSS should come after the kori theme")
 	}
 }

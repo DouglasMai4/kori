@@ -249,6 +249,8 @@ r.Get("/openapi.yaml", spec.YAMLHandler())
 
 [Scalar](https://scalar.com) is an API reference UI — like Swagger UI, but faster and cleaner.
 
+By default it ships with the **kori theme**: the same blue-navy palette, Geist typography and dark code windows as the kori docs, in both light and dark mode. Set `Theme` to any built-in Scalar theme (`"default"`, `"moon"`, `"purple"`, …) to opt out. `CustomCSS` is applied after the theme, so you can override any `--scalar-*` variable.
+
 ```go
 r.Get("/docs", spec.ScalarHandler("/openapi.json"))
 

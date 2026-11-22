@@ -1,0 +1,246 @@
+/* kori — default Scalar theme. Derived from the kori docs design system:
+   blue-navy ramp only, Geist + Geist Mono, 1px hairlines, ambient shadows. */
+
+:root {
+  --scalar-font: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --scalar-font-code: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --scalar-radius: 6px;
+  --scalar-radius-lg: 10px;
+  --scalar-radius-xl: 14px;
+  --kori-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html .light-mode {
+  --scalar-color-1: #17243b;
+  --scalar-color-2: #3e4d68;
+  --scalar-color-3: #5d6c87;
+  --scalar-color-accent: #315bff;
+  --scalar-color-disabled: #8493ad;
+  --scalar-color-ghost: #8493ad;
+
+  --scalar-background-1: #f5f8ff;
+  --scalar-background-2: #ffffff;
+  --scalar-background-3: #e5ecf7;
+  --scalar-background-accent: #dfe9ff;
+  --scalar-border-color: #dbe3f0;
+
+  --scalar-button-1: #315bff;
+  --scalar-button-1-color: #ffffff;
+  --scalar-button-1-hover: #2449e0;
+
+  /* methods & status: blue family only */
+  --scalar-color-blue: #315bff;
+  --scalar-color-green: #1a3299;
+  --scalar-color-orange: #4a6fd6;
+  --scalar-color-yellow: #2f7fd9;
+  --scalar-color-purple: #5b5fe0;
+  --scalar-color-red: #17243b;
+
+  --scalar-sidebar-background-1: #f5f8ff;
+  --scalar-sidebar-color-1: #17243b;
+  --scalar-sidebar-color-2: #3e4d68;
+  --scalar-sidebar-border-color: #dbe3f0;
+  --scalar-sidebar-item-hover-background: #e5ecf7;
+  --scalar-sidebar-item-hover-color: #17243b;
+  --scalar-sidebar-item-active-background: #dfe9ff;
+  --scalar-sidebar-color-active: #1a3299;
+  --scalar-sidebar-search-background: #ffffff;
+  --scalar-sidebar-search-border-color: #dbe3f0;
+  --scalar-sidebar-search-color: #5d6c87;
+
+  --scalar-shadow-1: 0 1px 2px rgb(23 36 59 / 0.06);
+  --scalar-shadow-2: 0 30px 60px -32px rgb(23 36 59 / 0.35);
+
+  --kori-selection: rgb(49 91 255 / 0.22);
+  --kori-focus: #315bff;
+}
+
+html .dark-mode {
+  --scalar-color-1: #e5ecf7;
+  --scalar-color-2: #a9b6cc;
+  --scalar-color-3: #8493ad;
+  --scalar-color-accent: #75b7ff;
+  --scalar-color-disabled: #5d6c87;
+  --scalar-color-ghost: #5d6c87;
+
+  --scalar-background-1: #0d1526;
+  --scalar-background-2: #111c30;
+  --scalar-background-3: #17243b;
+  --scalar-background-accent: #142357;
+  --scalar-border-color: #22324c;
+
+  --scalar-button-1: #75b7ff;
+  --scalar-button-1-color: #0d1526;
+  --scalar-button-1-hover: #9fc6ff;
+
+  --scalar-color-blue: #75b7ff;
+  --scalar-color-green: #bbd8ff;
+  --scalar-color-orange: #8fb0ff;
+  --scalar-color-yellow: #9fc6ff;
+  --scalar-color-purple: #a5a9ff;
+  --scalar-color-red: #5b8bff;
+
+  --scalar-sidebar-background-1: #0d1526;
+  --scalar-sidebar-color-1: #e5ecf7;
+  --scalar-sidebar-color-2: #a9b6cc;
+  --scalar-sidebar-border-color: #22324c;
+  --scalar-sidebar-item-hover-background: #111c30;
+  --scalar-sidebar-item-hover-color: #e5ecf7;
+  --scalar-sidebar-item-active-background: #142357;
+  --scalar-sidebar-color-active: #bbd8ff;
+  --scalar-sidebar-search-background: #111c30;
+  --scalar-sidebar-search-border-color: #22324c;
+  --scalar-sidebar-search-color: #8493ad;
+
+  --scalar-shadow-1: 0 1px 2px rgb(13 21 38 / 0.4);
+  --scalar-shadow-2: 0 30px 60px -30px rgb(13 21 38 / 0.6);
+
+  --kori-selection: rgb(117 183 255 / 0.45);
+  --kori-focus: #75b7ff;
+}
+
+/* Typography: tight, engineered headings; default tracking at body. */
+.scalar-app h1,
+.scalar-app h2,
+.scalar-app h3,
+.scalar-app .section-header {
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.scalar-app h1 { font-weight: 650; }
+.scalar-app h2 { font-weight: 620; }
+.scalar-app h3 { font-weight: 600; }
+.scalar-app table,
+.scalar-app .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Active sidebar item: accent-low surface, accent-high text. */
+.scalar-app .sidebar-heading.active_page,
+.scalar-app .sidebar-heading.active_page .sidebar-heading-link-title {
+  font-weight: 560;
+}
+
+/* Shell: the outer frame and toolbar sit on the page background. */
+html body.light-mode,
+html .light-mode .references-shell-toolbar { background: #e5ecf7; }
+html body.dark-mode,
+html .dark-mode .references-shell-toolbar { background: #0a1120; }
+
+/* Code: request/response examples are always the dark code window,
+   in both themes. Re-scope the palette inside them. */
+html .light-mode .request-card,
+html .light-mode .response-card {
+  --scalar-color-1: #e5ecf7;
+  --scalar-color-2: #a9b6cc;
+  --scalar-color-3: #8493ad;
+  --scalar-color-accent: #75b7ff;
+  --scalar-background-1: #0f1a2e;
+  --scalar-background-2: #131f36;
+  --scalar-background-3: #17243b;
+  --scalar-background-accent: #142357;
+  --scalar-border-color: #22324c;
+  color: #e5ecf7;
+}
+.scalar-app .request-card,
+.scalar-app .response-card {
+  background: #0f1a2e;
+  border: 1px solid #22324c;
+  border-radius: var(--scalar-radius-xl);
+  box-shadow: var(--scalar-shadow-2);
+}
+.scalar-app .request-card .scalar-card-header,
+.scalar-app .response-card .scalar-card-header,
+.scalar-app .request-card-footer,
+.scalar-app .response-card-footer {
+  background: #131f36;
+}
+.scalar-app .scalar-code-block,
+.scalar-app .scalar-code-block-pre {
+  font-feature-settings: 'calt' 0;
+}
+.scalar-app .scalar-card {
+  border-radius: var(--scalar-radius-xl);
+}
+.scalar-app .hljs-comment,
+.scalar-app .hljs-quote { color: #6b7a94; font-style: italic; }
+.scalar-app .hljs-keyword,
+.scalar-app .hljs-selector-tag,
+.scalar-app .hljs-literal,
+.scalar-app .hljs-built_in { color: #75b7ff; }
+.scalar-app .hljs-string,
+.scalar-app .hljs-number,
+.scalar-app .hljs-attr + .hljs-string { color: #bbd8ff; }
+.scalar-app .hljs-title,
+.scalar-app .hljs-title.function_,
+.scalar-app .hljs-function { color: #8fb0ff; }
+.scalar-app .hljs-type,
+.scalar-app .hljs-title.class_,
+.scalar-app .hljs-attr,
+.scalar-app .hljs-attribute { color: #9fc6ff; }
+.scalar-app .hljs-punctuation,
+.scalar-app .hljs-operator { color: #a9b6cc; }
+
+/* Inline code: accent-low wash, accent-high text, no border. */
+.scalar-app .markdown code:not(pre code) {
+  background: var(--scalar-background-accent);
+  color: var(--scalar-sidebar-color-active);
+  border: 0;
+  border-radius: 0.35rem;
+  font-size: 0.875em;
+}
+
+/* Links: 1px underline at a calm offset. */
+.scalar-app .markdown a {
+  color: var(--scalar-color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+/* Primary action (Test Request / Send). */
+.scalar-app .show-api-client-button,
+.scalar-app button.scalar-button-solid {
+  transition: transform 0.3s var(--kori-ease), box-shadow 0.3s var(--kori-ease),
+    background-color 0.3s var(--kori-ease);
+}
+.dark-mode .show-api-client-button {
+  background: linear-gradient(120deg, #75b7ff, #4f8cff);
+  color: #0d1526;
+  box-shadow: 0 6px 16px -6px rgb(13 21 38 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.dark-mode .show-api-client-button span,
+.dark-mode .show-api-client-button svg { color: #0d1526; }
+.scalar-app .show-api-client-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -8px rgb(13 21 38 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+/* Browser surfaces. */
+.scalar-app ::selection { background: var(--kori-selection); }
+.scalar-app :focus-visible {
+  outline: 2px solid var(--kori-focus);
+  outline-offset: 3px;
+}
+.scalar-app * {
+  scrollbar-color: #26364f transparent;
+  scrollbar-width: thin;
+}
+.light-mode .scalar-app *,
+.light-mode.scalar-app * { scrollbar-color: #bbc8dc transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scalar-app .show-api-client-button { transition: none; }
+  .scalar-app .show-api-client-button:hover { transform: none; }
+}
+
+/* Keep JSON keys and punctuation legible inside the code window. */
+.scalar-app .scalar-code-block .hljs-attr,
+.scalar-app .scalar-code-block .hljs-punctuation {
+  opacity: 1;
+}
+.scalar-app .scalar-code-block .hljs-attr { color: #9fc6ff; }
+.scalar-app .scalar-code-block .hljs-punctuation { color: #a9b6cc; }
+.scalar-app .scalar-code-block .hljs-string,
+.scalar-app .scalar-code-block .hljs-number { color: #bbd8ff; }
+.scalar-app .scalar-code-block .hljs-literal,
+.scalar-app .scalar-code-block .hljs-keyword { color: #75b7ff; }
